@@ -233,10 +233,15 @@ def scene_riyadh(w, h):
     for sx, sy in ((0.07, 0.20), (0.22, 0.10), (0.38, 0.24), (0.58, 0.12),
                    (0.74, 0.22), (0.15, 0.44), (0.48, 0.38), (0.90, 0.40)):
         star(d, sx * w, sy * h, 2, (255, 240, 180))
-    # crescent moon, top left
-    mx, my, mr = 0.12 * w, 0.22 * h, 0.16 * h
-    d.ellipse([mx - mr, my - mr, mx + mr, my + mr], fill=(255, 244, 200))
-    d.ellipse([mx - mr + 0.07 * h, my - mr, mx + mr + 0.07 * h,
+    # crescent moon, top left -- deep gold + halo so it reads as a
+    # crescent (not a pale disc) at 300 px. Same centre as before;
+    # the cutout is pushed further across for a thicker crescent.
+    mx, my, mr = 0.12 * w, 0.22 * h, 0.18 * h
+    d.ellipse([mx - mr - 4, my - mr - 4, mx + mr + 4, my + mr + 4],
+              fill=(96, 74, 24))
+    d.ellipse([mx - mr, my - mr, mx + mr, my + mr], fill=(255, 196, 40),
+              outline=(190, 130, 10), width=2)
+    d.ellipse([mx - mr + 0.10 * h, my - mr, mx + mr + 0.10 * h,
                my + mr], fill=(8, 14, 44))
     # skyline silhouettes with lit windows
     for bx, bw, bh in ((0.02, 0.09, 0.40), (0.125, 0.08, 0.58),
@@ -457,6 +462,11 @@ def scene_bitcoin(w, h):
               fill=(255, 214, 90))
     d.ellipse([cx - r, cy - r, cx + r, cy + r], fill=(247, 147, 26))
     d.text((cx - 8, cy - 12), "B", font=sans_b(22), fill=WHITE)
+    # the two vertical strokes of the Bitcoin symbol: DejaVu has no
+    # U+20BF glyph, so the strokes are drawn through the B, extending
+    # above and below it -- that is what makes it read as ₿, not B.
+    for sx in (cx - 4, cx + 2):
+        d.line([sx, cy - 15, sx, cy + 15], fill=WHITE, width=3)
     # falling chart, inside the tile
     pts = [(0.28, 0.14), (0.42, 0.24), (0.54, 0.18), (0.67, 0.42),
            (0.79, 0.52), (0.93, 0.84)]
@@ -498,11 +508,29 @@ def scene_rahul(w, h):
                     fill=(255, 220, 120))
     d.rectangle([sx - 0.01 * w, 0.26 * h, sx + 0.085 * w, 0.30 * h],
                 fill=(255, 220, 120))
-    # bat, angled across the pitch
-    d.line([0.38 * w, 0.92 * h, 0.50 * w, 0.42 * h], fill=(150, 100, 50),
-           width=9)
-    d.line([0.50 * w, 0.42 * h, 0.54 * w, 0.32 * h], fill=(120, 80, 40),
-           width=5)
+    # bat, redrawn as a real bat: slim handle + a blade that widens
+    # toward the toe, angled across the pitch (toe down-left)
+    hx, hy = 0.545 * w, 0.30 * h   # top of the handle
+    tx, ty = 0.375 * w, 0.90 * h   # toe of the blade
+    ax, ay = tx - hx, ty - hy
+    alen = math.hypot(ax, ay)
+    ux, uy = ax / alen, ay / alen
+    nx, ny = -uy, ux               # perpendicular to the bat
+    sx, sy = hx + 0.38 * ax, hy + 0.38 * ay   # shoulder: handle/blade join
+    bw0, bw1 = 0.055 * h, 0.11 * h            # blade half-widths
+    d.polygon([(sx + nx * bw0, sy + ny * bw0),
+               (tx + nx * bw1, ty + ny * bw1),
+               (tx - nx * bw1, ty - ny * bw1),
+               (sx - nx * bw0, sy - ny * bw0)],
+              fill=(196, 148, 84), outline=(120, 80, 40))
+    hw = 0.04 * h                  # handle half-width
+    d.polygon([(hx + nx * hw, hy + ny * hw),
+               (sx + nx * hw, sy + ny * hw),
+               (sx - nx * hw, sy - ny * hw),
+               (hx - nx * hw, hy - ny * hw)], fill=(120, 80, 40))
+    gx, gy = hx + 0.10 * ax, hy + 0.10 * ay   # grip band, handle top
+    d.line([gx + nx * hw, gy + ny * hw, gx - nx * hw, gy - ny * hw],
+           fill=(90, 55, 25), width=2)
     # red ball with seam, mid-pitch
     d.ellipse([0.55 * w, 0.58 * h, 0.60 * w, 0.74 * h], fill=RED)
     d.ellipse([0.565 * w, 0.62 * h, 0.585 * w, 0.70 * h], fill=WHITE)
@@ -1080,6 +1108,13 @@ def build():
         for line in lines[:2]:
             d.text((x, yy), line, font=fh, fill=INK)
             yy += 20
+        # Hero decks: fit_lines starts at 12 pt and shrinks only as far
+        # as needed for 2 lines. Measured 21 Nov (polish round):
+        # COP31 12 pt, Riyadh 12 pt, Peru 11 pt. Peru at 12 pt is
+        # arithmetically impossible without rewording: its deck+src
+        # is 663.9 px at 12 pt vs 2 x 326 px available, so no re-wrap
+        # can fit it in 2 lines; the deck wording is audited data
+        # and must not change. Peru at 11 pt is the correct size.
         fd2, lines = fit_lines(d, hero["deck"] + "  " + hero["src"],
                                "DejaVuSans.ttf", 12, HERO_W, 2, 10)
         yy += 1
