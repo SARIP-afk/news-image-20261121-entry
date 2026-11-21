@@ -295,10 +295,12 @@ def scene_peru(w, h):
                (0.82 * w, 0.32 * h), (0.79 * w, 0.37 * h),
                (0.73 * w, 0.37 * h)], fill=WHITE)
     # village: two houses on the mountainside, clear of the chip
-    for hx, hy, s in ((0.60 * w, 0.60 * h, 1.0), (0.74 * w, 0.66 * h, 0.8)):
+    # and BELOW the seismograph flat line (0.55h): roof peaks at
+    # 0.60h / 0.64h, so the red trace never crosses a roof.
+    for hx, hy, s in ((0.60 * w, 0.72 * h, 1.0), (0.74 * w, 0.76 * h, 0.8)):
         d.rectangle([hx, hy, hx + 0.13 * w * s, hy + 0.22 * h],
                     fill=WHITE)
-        d.polygon([(hx - 0.01 * w, hy), (hx + 0.065 * w * s, hy - 0.15 * h),
+        d.polygon([(hx - 0.01 * w, hy), (hx + 0.065 * w * s, hy - 0.12 * h),
                    (hx + 0.14 * w * s, hy)], fill=RED_DARK)
         d.rectangle([hx + 0.05 * w * s, hy + 0.10 * h,
                      hx + 0.08 * w * s, hy + 0.22 * h], fill=(90, 50, 20))
@@ -309,9 +311,9 @@ def scene_peru(w, h):
     pts = [(fx * w, fy * h) for fx, fy in pts]
     d.line(pts, fill=RED, width=5)
     d.line(pts, fill=WHITE, width=1)
-    # ground crack, bottom right
-    d.line([(0.60 * w, 0.92 * h), (0.70 * w, 0.78 * h),
-            (0.80 * w, 0.90 * h)], fill=(60, 36, 16), width=3)
+    # ground crack, bottom right corner (clear of the houses)
+    d.line([(0.86 * w, 0.95 * h), (0.92 * w, 0.82 * h),
+            (0.98 * w, 0.93 * h)], fill=(60, 36, 16), width=3)
     return img
 
 def scene_kryvyi(w, h):

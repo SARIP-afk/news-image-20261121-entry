@@ -43,10 +43,19 @@ BESIDE EACH STORY").
 
 - Rendered twice: byte-identical, sha256
   `c47b6f73c93aa9f76e3efcc4b582cee039de96dd832a647feec8e4a2843a0100`
-  both runs.
-- `main.py` run twice into separate folders: byte-identical output,
-  same sha256 as `entry-v4.png`.
-- `entry-v4.png`: 1024x1024, RGB, 201,875 bytes (197.1 KiB), under
+  both runs (builder's render).
+- **Coordinator fix (after independent visual check):** the Peru
+  seismograph line crossed the first house's roof (see "What is
+  still not perfect" below). The coordinator moved the two houses
+  below the seismograph flat line (roof peaks 0.60h / 0.64h vs the
+  0.55h trace) and moved the ground crack to the far bottom-right
+  corner, re-rendered twice: byte-identical, NEW sha256
+  `b3cebc943b8b79aebd74ec5545695b16e70d21b3d8a2b2407828ea88868a59bb`.
+  Audit re-run after the fix: 0 errors (data untouched). `main.py`
+  re-run twice into separate folders: byte-identical, same new sha.
+  Kit check re-run after the fix: same result (4 passed, 1 failed
+  transcripts_present as expected).
+- `entry-v4.png`: 1024x1024, RGB, 201,858 bytes (197.1 KiB), under
   the 1 MiB cap.
 - `entry.png` in this repo is now the same v4 render (201,875 bytes).
 
@@ -139,11 +148,15 @@ larger than v3's. Side-by-side sheet: `v2-v3-v4-300px.png`.
 
 ## What is still not perfect (honest)
 
-- The Peru seismograph line crosses the roof of the first village
-  house (the flat 0.55h segment passes over the roof peak at
-  0.45h). The house is still readable, but the line-through-roof
-  is visible at full size. Moving the houses below the line would
-  fix it and is a 2-line change if the coordinator wants it.
+- The Peru seismograph line crossed the roof of the first village
+  house (the flat 0.55h segment passed over the roof peak at
+  0.45h). **FIXED by the coordinator after its own visual check:**
+  houses moved below the trace (roof peaks now 0.60h / 0.64h),
+  ground crack moved to the far bottom-right corner; re-rendered
+  and re-verified (new sha256 `b3cebc943…59bb`, audit 0 errors,
+  kit check unchanged). Verified visually at full size: the red
+  trace now runs cleanly above both roofs with brown mountain
+  between them.
 - The Riyadh crescent moon reads as a pale disc at 300 px; the
   crescent cutout is subtle.
 - The "B" on the bitcoin coin is a plain letter B, not the
