@@ -1,21 +1,15 @@
-"""Deliver the finished front page to the grader, byte for byte.
+"""Hand the finished v2 front page to the grader, unchanged.
 
-The picture was drawn beforehand by an offline script and is kept as
-entry.png beside this file. This program only hands those exact bytes
-over: it reads the file, checks it is the 1024x1024 8-bit RGB PNG we
-expect and no larger than 1 MiB, and writes it to the output folder
-the grader wants (MAKEFUN_OUTPUT_DIR when set, /output otherwise).
+The picture was rendered beforehand by the offline build script
+(build_v2.py) and stored here as entry.png. This program does nothing
+creative: it reads those bytes, sanity-checks them (PNG signature,
+1024x1024, 8-bit RGB, at most 1 MiB), and copies them to the folder the
+grader reads (MAKEFUN_OUTPUT_DIR, or /output by default).
 
-The picture is variant A of four built for this day — the front-page
-layout with 33 stories, a numbers strip, three hero scenes, ten cards,
-a map and a DATE CHECK box — picked after a 300px-thumbnail duel
-against the other three variants (see DUEL.md in the build folder).
-
-It uses nothing beyond the Python 3.13 standard library, touches no
-network, and uses neither randomness nor the clock, so running it
-twice writes identical bytes. On success it prints the byte count and
-sha256 and exits zero; on any problem it says why on stderr and
-exits one.
+Only the Python standard library is used, there is no network access,
+no randomness and no clock, so two runs write byte-identical output.
+On success it prints the byte count and sha256; on any problem it
+explains on stderr and exits non-zero.
 """
 
 import hashlib
@@ -23,54 +17,52 @@ import os
 import sys
 from pathlib import Path
 
-NAME = "entry.png"
-LIMIT = 1024 * 1024
-MAGIC = b"\x89PNG\r\n\x1a\n"
-SIZE = (1024, 1024)
-DEPTH_KIND = (8, 2)  # 8-bit, colour type 2 (RGB)
+PICTURE = "entry.png"
+MAX_BYTES = 1024 * 1024
+PNG_MAGIC = b"\x89PNG\r\n\x1a\n"
+EXPECTED_SIZE = (1024, 1024)
+EXPECTED_DEPTH = (8, 2)  # 8-bit samples, RGB colour type
 
 
-def fail(msg):
+def problem(msg):
     print("entry failed: " + msg, file=sys.stderr)
     return 1
 
 
-def read_picture():
-    """Load entry.png from beside this file; (blob, problem)."""
-    path = Path(__file__).resolve().parent / NAME
+def load():
+    """Return (bytes, error) for the picture stored beside this file."""
+    path = Path(__file__).resolve().parent / PICTURE
     if not path.is_file():
-        return None, f"entry.png is missing beside main.py ({path})"
+        return None, f"{PICTURE} not found beside main.py ({path})"
     blob = path.read_bytes()
-    if len(blob) > LIMIT:
-        return None, f"entry.png is {len(blob)} bytes, over the 1 MiB limit"
-    if blob[:8] != MAGIC:
-        return None, "not a PNG file (bad signature)"
-    if len(blob) < 12 or blob[-8:-4] != b"IEND":
-        return None, "PNG looks truncated (no IEND trailer)"
+    if len(blob) > MAX_BYTES:
+        return None, f"{PICTURE} is {len(blob)} bytes, over the 1 MiB cap"
+    if blob[:8] != PNG_MAGIC:
+        return None, "not a PNG file (wrong signature)"
+    if blob[-8:-4] != b"IEND":
+        return None, "PNG looks truncated (missing IEND trailer)"
     width = int.from_bytes(blob[16:20], "big")
     height = int.from_bytes(blob[20:24], "big")
-    if (width, height) != SIZE:
+    if (width, height) != EXPECTED_SIZE:
         return None, f"picture is {width}x{height}, expected 1024x1024"
-    if (blob[24], blob[25]) != DEPTH_KIND:
+    if (blob[24], blob[25]) != EXPECTED_DEPTH:
         return None, (
-            f"picture is depth {blob[24]}, colour type {blob[25]}, "
+            f"picture is depth {blob[24]}, colour type {blob[25]}; "
             "expected 8-bit RGB"
         )
     return blob, None
 
 
 def main():
-    blob, problem = read_picture()
-    if problem is not None:
-        return fail(problem)
-    folder = os.environ.get("MAKEFUN_OUTPUT_DIR", "/output")
-    target = Path(folder) / NAME
+    blob, err = load()
+    if err is not None:
+        return problem(err)
+    out_dir = os.environ.get("MAKEFUN_OUTPUT_DIR", "/output")
+    target = Path(out_dir) / PICTURE
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_bytes(blob)
-    print(
-        f"wrote {target} ({len(blob)} bytes, "
-        f"sha256 {hashlib.sha256(blob).hexdigest()})"
-    )
+    digest = hashlib.sha256(blob).hexdigest()
+    print(f"wrote {target} ({len(blob)} bytes, sha256 {digest})")
     return 0
 
 
