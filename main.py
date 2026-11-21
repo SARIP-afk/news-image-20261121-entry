@@ -1,7 +1,7 @@
-"""Hand the finished v2 front page to the grader, unchanged.
+"""Hand the finished v3 front page to the grader, unchanged.
 
 The picture was rendered beforehand by the offline build script
-(build_v2.py) and stored here as entry.png. This program does nothing
+(build_v3.py) and stored here as entry.png. This program does nothing
 creative: it reads those bytes, sanity-checks them (PNG signature,
 1024x1024, 8-bit RGB, at most 1 MiB), and copies them to the folder the
 grader reads (MAKEFUN_OUTPUT_DIR, or /output by default).
